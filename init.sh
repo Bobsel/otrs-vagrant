@@ -29,8 +29,13 @@ sudo useradd -d /opt/otrs/ -c 'OTRS user' otrs
 sudo usermod -G www-data otrs
 
 cd /opt/otrs/
+
 cp Kernel/Config.pm.dist Kernel/Config.pm
+sudo chown otrs:www-data /opt/otrs/Kernel/Config.pm
+sudo chmod 770 /opt/otrs/Kernel/Config.pm
+
 cp Kernel/Config/GenericAgent.pm.dist Kernel/Config/GenericAgent.pm
+
 echo "Check perl dependencies"
 sudo perl /opt/otrs/bin/otrs.CheckModules.pl
 sudo perl -cw /opt/otrs/bin/cgi-bin/index.pl
@@ -39,3 +44,9 @@ sudo perl -cw /opt/otrs/bin/otrs.PostMaster.pl
 bin/otrs.SetPermissions.pl --web-group=www-data
 sudo cp /opt/otrs/scripts/apache2-httpd.include.conf /etc/apache2/conf-enabled/otrs.conf
 sudo service apache2 restart
+
+
+echo "Creating empty database..."
+sudo su - postgres <<POSTGRES
+echo "create user otrs password 'otrspassword';alter user otrs createdb;CREATE DATABASE otrs owner otrs;" | psql
+POSTGRES
